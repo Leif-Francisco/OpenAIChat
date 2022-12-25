@@ -7,7 +7,7 @@ const chatContainer = document.querySelector('#chat_container')
 let loadInterval;
 
 function loader(element){
-  element.textContent= '';
+  element.textContent= ''
 
   loadInterval = setInterval(() =>{
     element.textContent += '.';
@@ -15,8 +15,7 @@ function loader(element){
     if(element.textContent === '....'){
         element.textContent = '';
     }
-  }, 300)
-
+  }, 300);
 }
 
 function typeText(element,text) {
@@ -46,7 +45,7 @@ function chatStripe(isAi, value, uniqueID) {
         `
             <div class="wrapper" ${isAi && 'ai'}">
                 <div class="chat">
-                    <div classname="profile">
+                    <div class="profile">
                         <img
                             src="${isAi ? bot : user}"
                             alt="${isAi ? 'bot' : 'user'}"
@@ -62,9 +61,9 @@ function chatStripe(isAi, value, uniqueID) {
 
 
 const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
 
-    const data = new FormData(form);
+    const data = new FormData(form)
 
     //user's chatstripe
     chatContainer.innerHTML += chatStripe(false, data.get('prompt'));
@@ -78,7 +77,38 @@ const handleSubmit = async (e) => {
     const messageDiv = document.getElementById(uniqueID);
 
     loader(messageDiv);
+
+    
+const response = await fetch('http://localhost:5000', {
+    method: 'POST',
+    headers: {
+        'Content-type': 'application/json'
+    },
+    body: JSON.stringify({
+        prompt: data.get('prompt')
+    })
+})
+
+    clearInterval(loadInterval);
+    messageDiv.innerHTML = " ";
+
+    if(response.ok){
+        const data = await response.json();
+        const parsedData = data.bot.trim();
+
+        console.log({parsedData})
+
+        typeText(messageDiv, parsedData);
+    }   else {
+        const err = await response.text();
+
+        messageDiv.innerHTML = "Something went wrong";
+
+        alert(err);
+
+    }
 }
+
 
 form.addEventListener('submit', handleSubmit);
 form.addEventListener('keyup', (e) =>{
